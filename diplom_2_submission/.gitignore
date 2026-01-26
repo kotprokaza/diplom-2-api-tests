@@ -1,0 +1,74 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Allure
+.allure/
+allure-results/
+allure-report/
+
+# Logs
+*.log
+logs/
+
+# Test results
+*.trx
+TestResult.xml
+
+# Temporary files
+*.tmp
+*.temp
+
+# System files
+*.orig
+*~
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Local configuration
+*.properties
+*.cfg
+*.config
+
+# Backup files
+*.bak
+*.backup
+
+# Submission packages
+submission_package/
+submission_task2/
+diplom_*.zip
+
+# Old files
+README_OLD.md
+TEST_RESULTS.md
+HOW_TO_SUBMIT*.md
+INSTRUCTIONS*.md
+PREPARE_FOR_SUBMISSION.sh
