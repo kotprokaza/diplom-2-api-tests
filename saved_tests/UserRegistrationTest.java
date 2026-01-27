@@ -7,6 +7,7 @@ import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Test;
 
+import static com.stellarburgers.api.Endpoints.*;
 import static org.hamcrest.Matchers.*;
 
 public class UserRegistrationTest extends BaseTest {
@@ -32,7 +33,7 @@ public class UserRegistrationTest extends BaseTest {
         Response response = ApiClient.registerUser(user);
         
         response.then()
-            .statusCode(200)
+            .statusCode(SC_OK)
             .body("success", equalTo(true))
             .body("user.email", equalTo(testEmail.toLowerCase()))
             .body("user.name", equalTo(user.getName()));
@@ -55,7 +56,7 @@ public class UserRegistrationTest extends BaseTest {
         Response secondResponse = ApiClient.registerUser(user);
         
         secondResponse.then()
-            .statusCode(403)
+            .statusCode(SC_FORBIDDEN)
             .body("success", equalTo(false))
             .body("message", equalTo("User already exists"));
     }
@@ -69,7 +70,7 @@ public class UserRegistrationTest extends BaseTest {
         Response response = ApiClient.registerUser(user);
         
         response.then()
-            .statusCode(403)
+            .statusCode(SC_FORBIDDEN)
             .body("success", equalTo(false))
             .body("message", equalTo("Email, password and name are required fields"));
     }
@@ -84,7 +85,7 @@ public class UserRegistrationTest extends BaseTest {
         Response response = ApiClient.registerUser(user);
         
         response.then()
-            .statusCode(403)
+            .statusCode(SC_FORBIDDEN)
             .body("success", equalTo(false))
             .body("message", equalTo("Email, password and name are required fields"));
     }
@@ -99,7 +100,7 @@ public class UserRegistrationTest extends BaseTest {
         Response response = ApiClient.registerUser(user);
         
         response.then()
-            .statusCode(403)
+            .statusCode(SC_FORBIDDEN)
             .body("success", equalTo(false))
             .body("message", equalTo("Email, password and name are required fields"));
     }
