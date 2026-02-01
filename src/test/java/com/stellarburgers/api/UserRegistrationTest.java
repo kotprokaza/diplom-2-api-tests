@@ -1,58 +1,77 @@
 package com.stellarburgers.api;
 
+import com.stellarburgers.helpers.JsonHelper;
 import com.stellarburgers.models.User;
-import io.qameta.allure.Description;
-import io.qameta.allure.junit4.DisplayName;
-import io.restassured.response.Response;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-
+import io.restassured.response.Response;
+import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class UserRegistrationTest extends BaseTest {
     
     private String accessToken;
     private String testEmail;
-    private final String PASSWORD = "password123";
+    
+    @Before
+    public void setUpTest() {
+        super.setUp();
+        testEmail = "test_" + System.currentTimeMillis() + "@yandex.ru";
+    }
     
     @After
     public void tearDown() {
         if (accessToken != null && !accessToken.isEmpty()) {
-            ApiClient.deleteUser(accessToken);
+            given()
+                .header("Authorization", accessToken)
+                .when()
+                .delete("/api/auth/user")
+                .then()
+                .statusCode(202);
         }
     }
     
     @Test
-    @DisplayName("Создание уникального пользователя")
-    @Description("Тест на успешную регистрацию нового пользователя")
     public void testCreateUniqueUser() {
-        testEmail = generateUniqueEmail();
-        User user = new User(testEmail, PASSWORD, generateName());
+        User user = new User(testEmail, "password123", "Test User");
+        String jsonBody = JsonHelper.toJson(user);
         
-        Response response = ApiClient.registerUser(user);
+        Response response = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/register");
         
         response.then()
             .statusCode(200)
             .body("success", equalTo(true))
             .body("user.email", equalTo(testEmail.toLowerCase()))
-            .body("user.name", equalTo(user.getName()));
-            
+            .body("user.name", equalTo("Test User"));
+        
         accessToken = response.path("accessToken");
     }
     
     @Test
-    @DisplayName("Создание существующего пользователя")
-    @Description("Тест на попытку регистрации уже существующего пользователя")
     public void testCreateExistingUser() {
-        testEmail = generateUniqueEmail();
-        User user = new User(testEmail, PASSWORD, generateName());
+        User user = new User(testEmail, "password123", "Test User");
+        String jsonBody = JsonHelper.toJson(user);
         
-        // Сначала создаем пользователя
-        Response firstResponse = ApiClient.registerUser(user);
+        // Первая регистрация
+        Response firstResponse = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/register");
+        
         accessToken = firstResponse.path("accessToken");
         
-        // Пытаемся создать того же пользователя снова
-        Response secondResponse = ApiClient.registerUser(user);
+        // Вторая попытка регистрации
+        Response secondResponse = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/register");
         
         secondResponse.then()
             .statusCode(403)
@@ -61,12 +80,15 @@ public class UserRegistrationTest extends BaseTest {
     }
     
     @Test
-    @DisplayName("Создание пользователя без email")
-    @Description("Тест на регистрацию без заполнения email")
     public void testCreateUserWithoutEmail() {
-        User user = new User(null, PASSWORD, generateName());
+        // Тест 1: без email
+        String jsonBody = "{\"password\": \"password123\", \"name\": \"Test User\"}";
         
-        Response response = ApiClient.registerUser(user);
+        Response response = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/register");
         
         response.then()
             .statusCode(403)
@@ -75,13 +97,15 @@ public class UserRegistrationTest extends BaseTest {
     }
     
     @Test
-    @DisplayName("Создание пользователя без пароля")
-    @Description("Тест на регистрацию без заполнения пароля")
     public void testCreateUserWithoutPassword() {
-        testEmail = generateUniqueEmail();
-        User user = new User(testEmail, null, generateName());
+        // Тест 2: без пароля
+        String jsonBody = "{\"email\": \"" + testEmail + "\", \"name\": \"Test User\"}";
         
-        Response response = ApiClient.registerUser(user);
+        Response response = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/register");
         
         response.then()
             .statusCode(403)
@@ -90,13 +114,15 @@ public class UserRegistrationTest extends BaseTest {
     }
     
     @Test
-    @DisplayName("Создание пользователя без имени")
-    @Description("Тест на регистрацию без заполнения имени")
     public void testCreateUserWithoutName() {
-        testEmail = generateUniqueEmail();
-        User user = new User(testEmail, PASSWORD, null);
+        // Тест 3: без имени
+        String jsonBody = "{\"email\": \"" + testEmail + "\", \"password\": \"password123\"}";
         
-        Response response = ApiClient.registerUser(user);
+        Response response = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/register");
         
         response.then()
             .statusCode(403)

@@ -1,28 +1,16 @@
 package com.stellarburgers.api;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.parsing.Parser;
 import org.junit.Before;
-
-import static com.stellarburgers.api.Endpoints.BASE_URL;
 
 public class BaseTest {
     
     @Before
     public void setUp() {
-        RestAssured.baseURI = BASE_URL;
-        RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-    }
-    
-    // Генерация уникального email
-    protected String generateUniqueEmail() {
-        return "test_" + System.currentTimeMillis() + "@yandex.ru";
-    }
-    
-    // Генерация имени
-    protected String generateName() {
-        return "Test User " + System.currentTimeMillis();
+        // Устанавливаем дефолтный парсер для JSON
+        RestAssured.defaultParser = Parser.JSON;
+        // Используем правильный URL из задания
+        RestAssured.baseURI = "https://stellarburgers.education-services.ru";
     }
 }
