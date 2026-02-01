@@ -1,13 +1,11 @@
 package com.stellarburgers.api;
 
-import io.qameta.allure.Description;
-import io.qameta.allure.junit4.DisplayName;
-import io.qameta.allure.Step;
-import io.restassured.response.Response;
+import com.stellarburgers.helpers.JsonHelper;
+import com.stellarburgers.models.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import io.restassured.response.Response;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -18,100 +16,117 @@ public class UserRegistrationTest extends BaseTest {
     
     @Before
     public void setUpTest() {
-        super.setUp(); // Вызываем родительский метод
+        super.setUp();
         testEmail = "test_" + System.currentTimeMillis() + "@yandex.ru";
     }
     
     @After
     public void tearDown() {
         if (accessToken != null && !accessToken.isEmpty()) {
-            deleteUser(accessToken);
+            given()
+                .header("Authorization", accessToken)
+                .when()
+                .delete("/api/auth/user")
+                .then()
+                .statusCode(202);
         }
     }
     
-    @Step("Удаление пользователя")
-    private void deleteUser(String token) {
-        given()
-            .header("Authorization", token)
-        .when()
-            .delete("/api/auth/user")
-        .then()
-            .statusCode(202);
-    }
-    
     @Test
-    @DisplayName("Создание уникального пользователя")
-    @Description("Тест на успешную регистрацию нового пользователя")
     public void testCreateUniqueUser() {
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"password\": \"password123\", \"name\": \"Test User\"}", 
-            testEmail
-        );
-
+        User user = new User(testEmail, "password123", "Test User");
+        String jsonBody = JsonHelper.toJson(user);
+        
         Response response = given()
             .header("Content-type", "application/json")
             .body(jsonBody)
-        .when()
+            .when()
             .post("/api/auth/register");
-
+        
         response.then()
             .statusCode(200)
             .body("success", equalTo(true))
             .body("user.email", equalTo(testEmail.toLowerCase()))
             .body("user.name", equalTo("Test User"));
-            
-        // Сохраняем токен для удаления пользователя
+        
         accessToken = response.path("accessToken");
     }
     
     @Test
-    @DisplayName("Создание существующего пользователя")
-    @Description("Тест на попытку регистрации уже существующего пользователя")
     public void testCreateExistingUser() {
-        // Сначала создаем пользователя
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"password\": \"password123\", \"name\": \"Test User\"}", 
-            testEmail
-        );
+        User user = new User(testEmail, "password123", "Test User");
+        String jsonBody = JsonHelper.toJson(user);
         
-        given()
+        // Первая регистрация
+        Response firstResponse = given()
             .header("Content-type", "application/json")
             .body(jsonBody)
-        .when()
+            .when()
             .post("/api/auth/register");
-
-        // Пытаемся создать того же пользователя снова
-        Response response = given()
+        
+        accessToken = firstResponse.path("accessToken");
+        
+        // Вторая попытка регистрации
+        Response secondResponse = given()
             .header("Content-type", "application/json")
             .body(jsonBody)
-        .when()
+            .when()
             .post("/api/auth/register");
-
-        response.then()
+        
+        secondResponse.then()
             .statusCode(403)
             .body("success", equalTo(false))
             .body("message", equalTo("User already exists"));
     }
     
     @Test
-    @DisplayName("Создание пользователя без обязательного поля")
-    @Description("Тест на регистрацию без заполнения обязательного поля")
-    public void testCreateUserWithoutRequiredField() {
-        // Отправляем без поля "password"
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"name\": \"Test User\"}", 
-            testEmail
-        );
-
+    public void testCreateUserWithoutEmail() {
+        // Тест 1: без email
+        String jsonBody = "{\"password\": \"password123\", \"name\": \"Test User\"}";
+        
         Response response = given()
             .header("Content-type", "application/json")
             .body(jsonBody)
-        .when()
+            .when()
             .post("/api/auth/register");
-
+        
         response.then()
             .statusCode(403)
             .body("success", equalTo(false))
-            .body("message", containsString("required"));
+            .body("message", equalTo("Email, password and name are required fields"));
+    }
+    
+    @Test
+    public void testCreateUserWithoutPassword() {
+        // Тест 2: без пароля
+        String jsonBody = "{\"email\": \"" + testEmail + "\", \"name\": \"Test User\"}";
+        
+        Response response = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/register");
+        
+        response.then()
+            .statusCode(403)
+            .body("success", equalTo(false))
+            .body("message", equalTo("Email, password and name are required fields"));
+    }
+    
+    @Test
+    public void testCreateUserWithoutName() {
+        // Тест 3: без имени
+        String jsonBody = "{\"email\": \"" + testEmail + "\", \"password\": \"password123\"}";
+        
+        Response response = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/register");
+        
+        response.then()
+            .statusCode(403)
+            .body("success", equalTo(false))
+            .body("message", equalTo("Email, password and name are required fields"));
     }
 }

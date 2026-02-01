@@ -1,13 +1,11 @@
 package com.stellarburgers.api;
 
-import io.qameta.allure.Description;
-import io.qameta.allure.junit4.DisplayName;
-import io.qameta.allure.Step;
-import io.restassured.response.Response;
+import com.stellarburgers.helpers.JsonHelper;
+import com.stellarburgers.models.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
+import io.restassured.response.Response;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
@@ -18,54 +16,49 @@ public class UserLoginTest extends BaseTest {
     private String password = "password123";
     
     @Before
-    @Step("Создание тестового пользователя")
     public void setUpTest() {
         super.setUp();
         testEmail = "login_test_" + System.currentTimeMillis() + "@yandex.ru";
         
-        // Создаем пользователя для тестов логина
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"password\": \"%s\", \"name\": \"Login Test User\"}", 
-            testEmail, password
-        );
+        User user = new User(testEmail, password, "Login Test User");
+        String jsonBody = JsonHelper.toJson(user);
         
         Response response = given()
             .header("Content-type", "application/json")
             .body(jsonBody)
-        .when()
+            .when()
             .post("/api/auth/register");
-
-        accessToken = response.path("accessToken");
+        
+        // Извлекаем токен безопасно
+        String responseBody = response.getBody().asString();
+        if (response.getStatusCode() == 200) {
+            accessToken = response.jsonPath().getString("accessToken");
+        }
     }
     
     @After
-    @Step("Удаление тестового пользователя")
     public void tearDown() {
         if (accessToken != null && !accessToken.isEmpty()) {
             given()
                 .header("Authorization", accessToken)
-            .when()
+                .when()
                 .delete("/api/auth/user")
-            .then()
+                .then()
                 .statusCode(202);
         }
     }
     
     @Test
-    @DisplayName("Логин под существующим пользователем")
-    @Description("Тест на успешный вход с правильными данными")
     public void testLoginWithExistingUser() {
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"password\": \"%s\"}", 
-            testEmail, password
-        );
-
+        User loginData = new User(testEmail, password, null);
+        String jsonBody = JsonHelper.toJson(loginData);
+        
         Response response = given()
             .header("Content-type", "application/json")
             .body(jsonBody)
-        .when()
+            .when()
             .post("/api/auth/login");
-
+        
         response.then()
             .statusCode(200)
             .body("success", equalTo(true))
@@ -74,20 +67,33 @@ public class UserLoginTest extends BaseTest {
     }
     
     @Test
-    @DisplayName("Логин с неверным паролем")
-    @Description("Тест на вход с неверным паролем")
     public void testLoginWithWrongPassword() {
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"password\": \"wrongpassword\"}", 
-            testEmail
-        );
-
+        User loginData = new User(testEmail, "wrongpassword", null);
+        String jsonBody = JsonHelper.toJson(loginData);
+        
         Response response = given()
             .header("Content-type", "application/json")
             .body(jsonBody)
-        .when()
+            .when()
             .post("/api/auth/login");
-
+        
+        response.then()
+            .statusCode(401)
+            .body("success", equalTo(false))
+            .body("message", equalTo("email or password are incorrect"));
+    }
+    
+    @Test
+    public void testLoginWithWrongEmail() {
+        User loginData = new User("wrong_" + testEmail, password, null);
+        String jsonBody = JsonHelper.toJson(loginData);
+        
+        Response response = given()
+            .header("Content-type", "application/json")
+            .body(jsonBody)
+            .when()
+            .post("/api/auth/login");
+        
         response.then()
             .statusCode(401)
             .body("success", equalTo(false))
