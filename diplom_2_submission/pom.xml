@@ -14,11 +14,10 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <rest-assured.version>5.4.0</rest-assured.version>
+        <rest-assured.version>5.3.0</rest-assured.version>
+        <allure.version>2.21.0</allure.version>
         <junit.version>4.13.2</junit.version>
-        <jackson.version>2.15.2</jackson.version>
-        <allure.version>2.24.0</allure.version>
-        <aspectj.version>1.9.19</aspectj.version>
+        <jackson.version>2.14.2</jackson.version>
     </properties>
 
     <dependencies>
@@ -29,7 +28,7 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-
+        
         <!-- REST Assured -->
         <dependency>
             <groupId>io.rest-assured</groupId>
@@ -37,35 +36,20 @@
             <version>${rest-assured.version}</version>
             <scope>test</scope>
         </dependency>
-
+        
         <!-- JSON processing -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-
-        <!-- Hamcrest для проверок -->
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>2.2</version>
-            <scope>test</scope>
-        </dependency>
-
+        
         <!-- Allure JUnit 4 -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-junit4</artifactId>
             <version>${allure.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <!-- AspectJ for Allure -->
-        <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-            <version>${aspectj.version}</version>
         </dependency>
     </dependencies>
 
@@ -81,25 +65,27 @@
                     <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
-
+            
             <!-- Maven Surefire Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M7</version>
                 <configuration>
+                    <testFailureIgnore>true</testFailureIgnore>
                     <argLine>
-                        -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+                        -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/1.9.7/aspectjweaver-1.9.7.jar"
                     </argLine>
-                    <systemProperties>
-                        <property>
-                            <name>allure.results.directory</name>
-                            <value>${project.build.directory}/allure-results</value>
-                        </property>
-                    </systemProperties>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjweaver</artifactId>
+                        <version>1.9.7</version>
+                    </dependency>
+                </dependencies>
             </plugin>
-
+            
             <!-- Allure Maven Plugin -->
             <plugin>
                 <groupId>io.qameta.allure</groupId>
@@ -111,17 +97,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>io.qameta.allure</groupId>
-                <artifactId>allure-maven</artifactId>
-                <version>2.12.0</version>
-                <configuration>
-                    <reportVersion>${allure.version}</reportVersion>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>

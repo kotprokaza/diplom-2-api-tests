@@ -14,11 +14,14 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <rest-assured.version>5.4.0</rest-assured.version>
+        <rest-assured.version>5.3.0</rest-assured.version>
+        <allure.version>2.21.0</allure.version>
         <junit.version>4.13.2</junit.version>
-        <jackson.version>2.15.2</jackson.version>
-        <allure.version>2.24.0</allure.version>
-        <aspectj.version>1.9.19</aspectj.version>
+        <jackson.version>2.14.2</jackson.version>
+        <lombok.version>1.18.30</lombok.version>
+        <javafaker.version>1.0.2</javafaker.version>
+        <httpclient.version>4.5.14</httpclient.version>
+        <aspectj.version>1.9.7</aspectj.version>
     </properties>
 
     <dependencies>
@@ -29,7 +32,7 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-
+        
         <!-- REST Assured -->
         <dependency>
             <groupId>io.rest-assured</groupId>
@@ -37,22 +40,14 @@
             <version>${rest-assured.version}</version>
             <scope>test</scope>
         </dependency>
-
+        
         <!-- JSON processing -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-
-        <!-- Hamcrest для проверок -->
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>2.2</version>
-            <scope>test</scope>
-        </dependency>
-
+        
         <!-- Allure JUnit 4 -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
@@ -60,12 +55,37 @@
             <version>${allure.version}</version>
             <scope>test</scope>
         </dependency>
-
+        
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- JavaFaker для генерации тестовых данных -->
+        <dependency>
+            <groupId>com.github.javafaker</groupId>
+            <artifactId>javafaker</artifactId>
+            <version>${javafaker.version}</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- Apache HttpComponents для статус-кодов -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
+            <scope>test</scope>
+        </dependency>
+        
         <!-- AspectJ for Allure -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
             <version>${aspectj.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -79,15 +99,23 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
-
+            
             <!-- Maven Surefire Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M7</version>
                 <configuration>
+                    <testFailureIgnore>false</testFailureIgnore>
                     <argLine>
                         -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
                     </argLine>
@@ -99,7 +127,7 @@
                     </systemProperties>
                 </configuration>
             </plugin>
-
+            
             <!-- Allure Maven Plugin -->
             <plugin>
                 <groupId>io.qameta.allure</groupId>
@@ -107,21 +135,10 @@
                 <version>2.12.0</version>
                 <configuration>
                     <reportVersion>${allure.version}</reportVersion>
+                    <resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
+                    <reportDirectory>${project.build.directory}/allure-report</reportDirectory>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>io.qameta.allure</groupId>
-                <artifactId>allure-maven</artifactId>
-                <version>2.12.0</version>
-                <configuration>
-                    <reportVersion>${allure.version}</reportVersion>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>
