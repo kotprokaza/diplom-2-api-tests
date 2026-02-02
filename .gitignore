@@ -29,7 +29,6 @@ Thumbs.db
 # Allure
 .allure/
 # allure-results/  <- ЗАКОММЕНТИРОВАНО, чтобы попало в git
-allure-report/
 
 # Logs
 *.log
@@ -75,8 +74,6 @@ PREPARE_FOR_SUBMISSION.sh
 
 # Allure reports
 allure-results/
-allure-report/
-allure-report*.zip
 .allure/
 target/allure-results/
 

@@ -1,0 +1,1 @@
+{"total":2,"items":[{"uid":"ce0d4210ea3ddef789f4e3505f38faa3","name":"com.stellarburgers.api.OrderCreationTest","statistic":{"failed":0,"broken":0,"skipped":0,"passed":4,"unknown":0,"total":4}},{"uid":"edfba1df702d4710fe1cb09210734330","name":"com.stellarburgers.api.UserLoginTest","statistic":{"failed":0,"broken":0,"skipped":0,"passed":3,"unknown":0,"total":3}}]}
