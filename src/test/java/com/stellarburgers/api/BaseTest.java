@@ -9,10 +9,8 @@ public class BaseTest {
     
     @Before
     public void setUp() {
-        // Правильный URL из задания
         RestAssured.baseURI = "https://stellarburgers.education-services.ru";
         
-        // Включаем логирование запросов и ответов
         RestAssured.filters(new RequestLoggingFilter(), new ResponseLoggingFilter());
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
     }

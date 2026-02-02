@@ -1,5 +1,7 @@
 package com.stellarburgers.api;
 
+import com.stellarburgers.models.LoginRequest;
+import com.stellarburgers.models.UserRequest;
 import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import io.qameta.allure.Step;
@@ -8,7 +10,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class UserLoginTest extends BaseTest {
@@ -23,18 +24,8 @@ public class UserLoginTest extends BaseTest {
         super.setUp();
         testEmail = "login_test_" + System.currentTimeMillis() + "@yandex.ru";
         
-        // Создаем пользователя для тестов логина
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"password\": \"%s\", \"name\": \"Login Test User\"}", 
-            testEmail, password
-        );
-        
-        Response response = given()
-            .header("Content-type", "application/json")
-            .body(jsonBody)
-        .when()
-            .post("/api/auth/register");
-
+        UserRequest user = new UserRequest(testEmail, password, "Login Test User");
+        Response response = ApiClient.registerUser(user);
         accessToken = response.path("accessToken");
     }
     
@@ -42,12 +33,7 @@ public class UserLoginTest extends BaseTest {
     @Step("Удаление тестового пользователя")
     public void tearDown() {
         if (accessToken != null && !accessToken.isEmpty()) {
-            given()
-                .header("Authorization", accessToken)
-            .when()
-                .delete("/api/auth/user")
-            .then()
-                .statusCode(202);
+            ApiClient.deleteUser(accessToken);
         }
     }
     
@@ -55,17 +41,10 @@ public class UserLoginTest extends BaseTest {
     @DisplayName("Логин под существующим пользователем")
     @Description("Тест на успешный вход с правильными данными")
     public void testLoginWithExistingUser() {
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"password\": \"%s\"}", 
-            testEmail, password
-        );
-
-        Response response = given()
-            .header("Content-type", "application/json")
-            .body(jsonBody)
-        .when()
-            .post("/api/auth/login");
-
+        LoginRequest loginData = new LoginRequest(testEmail, password);
+        
+        Response response = ApiClient.loginUser(loginData);
+        
         response.then()
             .statusCode(200)
             .body("success", equalTo(true))
@@ -77,17 +56,24 @@ public class UserLoginTest extends BaseTest {
     @DisplayName("Логин с неверным паролем")
     @Description("Тест на вход с неверным паролем")
     public void testLoginWithWrongPassword() {
-        String jsonBody = String.format(
-            "{\"email\": \"%s\", \"password\": \"wrongpassword\"}", 
-            testEmail
-        );
-
-        Response response = given()
-            .header("Content-type", "application/json")
-            .body(jsonBody)
-        .when()
-            .post("/api/auth/login");
-
+        LoginRequest loginData = new LoginRequest(testEmail, "wrongpassword");
+        
+        Response response = ApiClient.loginUser(loginData);
+        
+        response.then()
+            .statusCode(401)
+            .body("success", equalTo(false))
+            .body("message", equalTo("email or password are incorrect"));
+    }
+    
+    @Test
+    @DisplayName("Логин с неверным email")
+    @Description("Тест на вход с несуществующим email")
+    public void testLoginWithWrongEmail() {
+        LoginRequest loginData = new LoginRequest("nonexistent@email.com", password);
+        
+        Response response = ApiClient.loginUser(loginData);
+        
         response.then()
             .statusCode(401)
             .body("success", equalTo(false))
