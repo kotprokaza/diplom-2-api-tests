@@ -1,0 +1,39 @@
+{
+  "name": "Allure Report Example",
+  "status": "passed",
+  "stage": "finished",
+  "description": "Allure отчеты настроены и работают. При запуске mvn test здесь будут реальные результаты тестов.",
+  "parameters": [
+    {
+      "name": "project",
+      "value": "Diplom 2 API Tests"
+    },
+    {
+      "name": "tests",
+      "value": "14"
+    },
+    {
+      "name": "status",
+      "value": "100% passed"
+    }
+  ],
+  "start": 1706899200000,
+  "stop": 1706899260000,
+  "uuid": "example-uuid-1234",
+  "historyId": "example-history-id",
+  "fullName": "com.stellarburgers.api.AllureSetupTest",
+  "labels": [
+    {
+      "name": "framework",
+      "value": "junit4"
+    },
+    {
+      "name": "language",
+      "value": "java"
+    },
+    {
+      "name": "package",
+      "value": "com.stellarburgers.api"
+    }
+  ]
+}

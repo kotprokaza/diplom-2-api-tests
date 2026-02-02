@@ -28,7 +28,7 @@ Thumbs.db
 
 # Allure
 .allure/
-allure-results/
+# allure-results/  <- ЗАКОММЕНТИРОВАНО, чтобы попало в git
 allure-report/
 
 # Logs
